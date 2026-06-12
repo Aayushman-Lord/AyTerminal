@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <readline/readline.h>
 #include <readline/history.h>
-
 #include "Parser.h"
 #include "Execute.h"
 
@@ -18,10 +17,7 @@ int main()
     {
         string CurrentPath = std::filesystem::current_path();
 
-        string prompt =
-            "\033[1;34m[" +
-            CurrentPath +
-            "]\033[32m SHELL$ \n > \033[0m";
+        string prompt = "\033[1;34m[" + CurrentPath + "]\033[32m SHELL$ \n > \033[0m";
 
         char* input = readline(prompt.c_str());
 

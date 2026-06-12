@@ -20,7 +20,6 @@ auto argToChar(const std::vector<std::string> &arg)
     return args;
 }
 
-
 int execute(vector<string>args)
 {
     auto char_args = argToChar(args);
@@ -30,15 +29,12 @@ int execute(vector<string>args)
     if (pid == 0)
     {
         execvp(char_args[0], char_args.data());
-        if (errno == ENOENT)
-            cout << char_args[0] << ": command not found\n";
-
+        if (errno == ENOENT)cout << char_args[0] << ": command not found\n";
         else
         {
             cout << "Error executing command: " << char_args[0];
             cout << strerror(errno) << "\n";
-        }
-        
+        } 
         return 1;
     }
     
