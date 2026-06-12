@@ -20,7 +20,7 @@ auto argToChar(const std::vector<std::string> &arg)
     return args;
 }
 
-int execute(vector<string>args)
+int execute(const vector<string>& args)
 {
     auto char_args = argToChar(args);
 
@@ -48,5 +48,11 @@ int execute(vector<string>args)
         cout << "Failed to fork process.\n";
     }
     
+    return 0;
+}
+
+int execute_outputReDirection(const vector<string> & args)
+{
+    cout << "Sorry: This feature is not implemented yet.\n";
     return 0;
 }

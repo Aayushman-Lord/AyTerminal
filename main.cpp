@@ -11,7 +11,7 @@ using std::cout, std::string, std::vector;
 int main()
 {
     bool stop = false;
-    cout << "\033[1;32m AyTerminal v1.1 \033[0m\n";
+    cout << "\033[1;32m AyTerminal v1.1.4 \033[0m\n";
 
     while (!stop)
     {
@@ -68,6 +68,23 @@ int main()
         // OTHER COMMANDS
         else
         {
+            bool pipe = false;
+            bool outputReDirection = false;
+            for (const auto& arg : instructions_parsed)
+            {
+                if (arg == "|")
+                {
+                    cout << "Piping is not supported yet.\n";
+                    pipe = true;
+                }
+                else if (arg == ">")
+                {
+                    outputReDirection = true;
+                    execute_outputReDirection(instructions_parsed);
+                }
+            }
+            if (pipe || outputReDirection)continue;
+
             execute(instructions_parsed);
         }
     }
