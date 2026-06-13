@@ -21,6 +21,7 @@ auto argToChar(const std::vector<std::string> &arg)
     return args;
 }
 
+// Execute a command without redirection or pipe (e.g., ls -l)
 int execute(const vector<string> &args)
 {
     auto char_args = argToChar(args);
@@ -53,6 +54,7 @@ int execute(const vector<string> &args)
     return 0;
 }
 
+// Handle output redirection (e.g., ls > output.txt)
 int execute_outputReDirection(const vector<string> &args)
 {
     vector<string> command, file;
@@ -100,5 +102,57 @@ int execute_outputReDirection(const vector<string> &args)
         cout << "Failed to fork process.\n";
     }
 
+    return 0;
+}
+
+// Handle input redirection (e.g., sort < input.txt)
+int execute_inputReDirection(const vector<string> &args)
+{
+    vector<string> command, file;
+    bool found = false;
+    for (const auto &arg : args)
+    {
+        if (arg == "<")
+        {
+            found = true;
+            continue;
+        }
+        
+        else if (!found)
+            command.push_back(arg);
+        
+        else
+            file.push_back(arg);
+    }
+
+    pid_t pid = fork();
+
+    if (pid == 0)
+    {
+        int fd = open(file[0].c_str(), O_RDONLY); // O_RDONLY → read only
+        
+        if (fd == -1) // Check if the file was opened successfully
+        {
+            perror("open");
+        }
+
+        dup2(fd, STDIN_FILENO); // Redirect standard input to the file
+        close(fd); // Close the file descriptor as it's no longer needed
+
+        execvp(command[0].c_str(), argToChar(command).data());
+        
+        cout << "Error executing command: " << command[0];
+        cout << strerror(errno) << "\n";
+        return 1;
+    }
+    else if (pid > 0)
+    {
+        waitpid(pid, nullptr, 0);
+    }
+    else
+    {
+        cout << "Failed to fork process.\n";
+        return 1;
+    }
     return 0;
 }

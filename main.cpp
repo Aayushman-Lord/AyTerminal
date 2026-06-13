@@ -11,7 +11,7 @@ using std::cout, std::string, std::vector;
 int main()
 {
     bool stop = false;
-    cout << "\033[1;32m AyTerminal v1.2.0 \033[0m\n";
+    cout << "\033[1;32m AyTerminal v1.3 \033[0m\n";
 
     while (!stop)
     {
@@ -35,8 +35,7 @@ int main()
 
         vector<string> instructions_parsed = Parse(instructions);
 
-        if (instructions_parsed.empty())
-            continue;
+        if (instructions_parsed.empty())continue;
 
         // EXIT
         if (instructions_parsed[0] == "exit")
@@ -69,6 +68,7 @@ int main()
         {
             bool pipe = false;
             bool outputReDirection = false;
+            bool inputReDirection = false;
             for (const auto& arg : instructions_parsed)
             {
                 if (arg == "|")
@@ -81,8 +81,13 @@ int main()
                     outputReDirection = true;
                     execute_outputReDirection(instructions_parsed);
                 }
+                else if (arg == "<")
+                {
+                    inputReDirection = true;
+                    execute_inputReDirection(instructions_parsed);
+                }
             }
-            if (pipe || outputReDirection)continue;
+            if (pipe || outputReDirection || inputReDirection)continue;
 
             execute(instructions_parsed);
         }
