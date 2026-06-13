@@ -11,7 +11,7 @@ using std::cout, std::string, std::vector;
 int main()
 {
     bool stop = false;
-    cout << "\033[1;32m AyTerminal v1.1.4 \033[0m\n";
+    cout << "\033[1;32m AyTerminal v1.2.0 \033[0m\n";
 
     while (!stop)
     {
@@ -41,8 +41,7 @@ int main()
         // EXIT
         if (instructions_parsed[0] == "exit")
         {
-            stop = true;
-            continue;
+            return 0;
         }
 
         // CD

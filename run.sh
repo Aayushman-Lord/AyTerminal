@@ -1,7 +1,8 @@
-echo "Compileing ..." ;
+echo "Compiling AyTerminal... " ;
 g++ main.cpp -o AyT -lreadline;
 
-echo "Starting in 1 sec " ;
+echo "Done! Executing AyTerminal... " ;
+
 sleep 1
 clear
 ./AyT
