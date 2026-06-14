@@ -73,6 +73,12 @@ int execute_outputReDirection(const vector<string> &args)
             file.push_back(arg);
     }
 
+    if (file.empty())
+    {
+        cout << "Error: No output file specified for redirection.\n";
+        return 1;
+    }
+
     pid_t pid = fork();
 
     if (pid == 0)
@@ -125,6 +131,12 @@ int execute_inputReDirection(const vector<string> &args)
             file.push_back(arg);
     }
 
+    if (file.empty())
+    {
+        cout << "Error: No input file specified for redirection.\n";
+        return 1;
+    }
+
     pid_t pid = fork();
 
     if (pid == 0)
@@ -154,5 +166,94 @@ int execute_inputReDirection(const vector<string> &args)
         cout << "Failed to fork process.\n";
         return 1;
     }
+    return 0;
+}
+
+// Handle pipe (e.g., ls -l | grep "txt")
+int execute_pipe(const vector<string> &args)
+{
+    vector<string> command1, command2;
+    bool found = false;
+    for (auto & word: args)
+    {
+        if (word == "|")
+        {
+            found = true;
+        }
+        else if(!found)
+        {
+            command1.push_back(word);
+        }
+        else
+        {
+            command2.push_back(word);
+        }
+    }
+
+    auto command1_arg = argToChar(command1);
+    auto command2_arg = argToChar(command2);
+
+    if (command1.empty() || command2.empty())
+    {
+        cout << "Error: Invalid pipe command. Both sides of the pipe must have a command.\n";
+        return 1;
+    }
+    
+    int fileD[2];// file descriptors for the pipe
+
+    if (pipe(fileD) == -1)
+    {
+        cout << "Failed to create pipe.\n";
+        return 1;
+    }
+
+    pid_t pid1 = fork();
+
+    if (pid1 == 0)
+    {
+        dup2(fileD[1], STDOUT_FILENO); // Redirect standard output to the write end of the pipe
+        close(fileD[0]); // Close the read end of the pipe in the first child
+        close(fileD[1]); // Close the write end of the pipe in the first child
+
+        execvp(command1_arg[0], command1_arg.data());
+        cout << "Error executing command: " << command1[0];
+        cout << strerror(errno) << "\n";
+        return 1;
+    }
+    else if (pid1 > 0)
+    {
+        waitpid(pid1, nullptr, 0);
+
+        pid_t pid2 = fork();
+
+        if (pid2 == 0)
+        {
+            dup2(fileD[0], STDIN_FILENO); // Redirect standard input to the read end of the pipe
+            close(fileD[1]); // Close the write end of the pipe in the second child
+            close(fileD[0]); // Close the read end of the pipe in the second child
+
+            execvp(command2_arg[0], command2_arg.data());
+            cout << "Error executing command: " << command2[0];
+            cout << strerror(errno) << "\n";
+            return 1;
+        }
+        else if (pid2 > 0)
+        {
+            close(fileD[0]); // Close both ends of the pipe in the parent
+            close(fileD[1]);
+            waitpid(pid2, nullptr, 0);
+        }
+        else
+        {
+            cout << "Failed to fork second process.\n";
+            return 1;
+        }
+    }
+    else
+    {
+        cout << "Failed to fork first process.\n";
+        return 1;
+    }
+
     return 0;
 }
