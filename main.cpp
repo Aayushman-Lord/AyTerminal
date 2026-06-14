@@ -11,7 +11,7 @@ using std::cout, std::string, std::vector;
 int main()
 {
     bool stop = false;
-    cout << "\033[1;32m AyTerminal v2.0 \033[0m\n";
+    cout << "\033[1;32m AyTerminal v2.0.1 \033[0m\n";
 
     while (!stop)
     {
@@ -38,7 +38,7 @@ int main()
         if (instructions_parsed.empty())continue;
 
         // EXIT
-        if (instructions_parsed[0] == "exit")
+        if (instructions_parsed[0] == "exit" || instructions_parsed[0] == "Exit" || instructions_parsed[0] == "EXIT")
         {
             return 0;
         }
