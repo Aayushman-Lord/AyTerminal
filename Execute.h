@@ -7,7 +7,16 @@
 
 using std::cout, std::vector, std::cin, std::string;
 
-auto argToChar(const std::vector<std::string> &arg)
+struct job
+{
+    pid_t pid;
+    string command;
+    bool status;
+};
+
+vector<job> jobs;
+  
+auto argToChar(const vector<string> &arg)
 {
     std::vector<char *> args;
 
@@ -22,7 +31,7 @@ auto argToChar(const std::vector<std::string> &arg)
 }
 
 // Execute a command without redirection or pipe (e.g., ls -l)
-int execute(const vector<string> &args)
+void execute(const vector<string> &args)
 {
     auto char_args = argToChar(args);
 
@@ -38,7 +47,7 @@ int execute(const vector<string> &args)
             cout << "Error executing command: " << char_args[0];
             cout << strerror(errno) << "\n";
         }
-        return 1;
+        return;
     }
 
     else if (pid > 0)
@@ -51,11 +60,10 @@ int execute(const vector<string> &args)
         cout << "Failed to fork process.\n";
     }
 
-    return 0;
 }
 
 // Handle output redirection (e.g., ls > output.txt)
-int execute_outputReDirection(const vector<string> &args)
+void execute_outputReDirection(const vector<string> &args)
 {
     vector<string> command, file;
     bool found = false;
@@ -76,7 +84,7 @@ int execute_outputReDirection(const vector<string> &args)
     if (file.empty())
     {
         cout << "Error: No output file specified for redirection.\n";
-        return 1;
+        return;
     }
 
     pid_t pid = fork();
@@ -97,7 +105,7 @@ int execute_outputReDirection(const vector<string> &args)
         
         cout << "Error executing command: " << command[0];
         cout << strerror(errno) << "\n";
-        return 1;
+        return;
     }
     else if (pid > 0)
     {
@@ -107,12 +115,10 @@ int execute_outputReDirection(const vector<string> &args)
     {
         cout << "Failed to fork process.\n";
     }
-
-    return 0;
 }
 
 // Handle input redirection (e.g., sort < input.txt)
-int execute_inputReDirection(const vector<string> &args)
+void execute_inputReDirection(const vector<string> &args)
 {
     vector<string> command, file;
     bool found = false;
@@ -134,7 +140,7 @@ int execute_inputReDirection(const vector<string> &args)
     if (file.empty())
     {
         cout << "Error: No input file specified for redirection.\n";
-        return 1;
+        return;
     }
 
     pid_t pid = fork();
@@ -155,7 +161,7 @@ int execute_inputReDirection(const vector<string> &args)
         
         cout << "Error executing command: " << command[0];
         cout << strerror(errno) << "\n";
-        return 1;
+        return;
     }
     else if (pid > 0)
     {
@@ -164,13 +170,13 @@ int execute_inputReDirection(const vector<string> &args)
     else
     {
         cout << "Failed to fork process.\n";
-        return 1;
+        return;
     }
-    return 0;
+    return;
 }
 
 // Handle pipe (e.g., ls -l | grep "txt")
-int execute_pipe(const vector<string> &args)
+void execute_pipe(const vector<string> &args)
 {
     vector<string> command1, command2;
     bool found = false;
@@ -196,7 +202,7 @@ int execute_pipe(const vector<string> &args)
     if (command1.empty() || command2.empty())
     {
         cout << "Error: Invalid pipe command. Both sides of the pipe must have a command.\n";
-        return 1;
+        return;
     }
     
     int fileD[2];// file descriptors for the pipe
@@ -204,7 +210,7 @@ int execute_pipe(const vector<string> &args)
     if (pipe(fileD) == -1)
     {
         cout << "Failed to create pipe.\n";
-        return 1;
+        return;
     }
 
     pid_t pid1 = fork();
@@ -218,7 +224,7 @@ int execute_pipe(const vector<string> &args)
         execvp(command1_arg[0], command1_arg.data());
         cout << "Error executing command: " << command1[0];
         cout << strerror(errno) << "\n";
-        return 1;
+        return;
     }
     else if (pid1 > 0)
     {
@@ -235,7 +241,7 @@ int execute_pipe(const vector<string> &args)
             execvp(command2_arg[0], command2_arg.data());
             cout << "Error executing command: " << command2[0];
             cout << strerror(errno) << "\n";
-            return 1;
+            return;
         }
         else if (pid2 > 0)
         {
@@ -246,14 +252,44 @@ int execute_pipe(const vector<string> &args)
         else
         {
             cout << "Failed to fork second process.\n";
-            return 1;
+            return;
         }
     }
     else
     {
         cout << "Failed to fork first process.\n";
-        return 1;
+        return;
     }
 
-    return 0;
+    return;
+}
+
+// Execute background command (e.g., sleep 5 &)
+void execute_background(vector<string> &args)
+{
+    args.pop_back();
+
+    auto char_args = argToChar(args);
+    pid_t pid = fork();
+
+    job newJob = {pid, char_args[0], true};
+
+    if (pid == 0)
+    {
+        execvp(char_args[0], char_args.data());
+    
+        cout << "Error executing command: " << char_args[0];
+        cout << strerror(errno) << "\n";
+        return;
+    }
+
+    else if (pid > 0)
+    {
+        jobs.push_back(newJob);
+    }
+
+    else
+    {
+        cout << "Failed to fork process.\n";
+    }
 }

@@ -8,13 +8,36 @@
 
 using std::cout, std::string, std::vector;
 
+// Functions to update the status of all jobs
+void update_job_status(job &j)
+{
+    if (!j.status)
+        return; // already marked finished, skip
+
+    int wstatus;
+    pid_t result = waitpid(j.pid, &wstatus, WNOHANG);
+
+    if (result == j.pid)
+    {
+        // child finished, reaped it just now
+        j.status = false;
+    }
+}
+void update_all_jobs(vector<job> &jobs)
+{
+    for (auto &j : jobs)
+        update_job_status(j);
+}
+
 int main()
 {
     bool stop = false;
-    cout << "\033[1;32m AyTerminal v2.0.1 \033[0m\n";
+    cout << "\033[1;32m AyTerminal v3 \033[0m\n";
 
     while (!stop)
     {
+        update_all_jobs(jobs); // Update the status of all jobs before displaying the prompt
+
         string CurrentPath = std::filesystem::current_path();
 
         string prompt = "\033[1;34m[" + CurrentPath + "]\033[32m SHELL$ \n > \033[0m";
@@ -55,11 +78,26 @@ int main()
             try
             {
                 std::filesystem::current_path(instructions_parsed[1]);
+		continue;
             }
 
             catch (const std::filesystem::filesystem_error& e)
             {
                 cout << "cd: " << e.what() << '\n';
+            }
+        }
+
+        //job
+	else if (instructions_parsed[0] == "job")
+        {
+            if (jobs.empty())
+            {
+                cout << "No background jobs.\n";
+                continue;
+            }
+            for (const auto& job : jobs)
+            {
+                cout << "PID: " << job.pid << " | Command: " << job.command << " | Status: " << (job.status ? "Running" : "Stopped") << "\n";
             }
         }
 
@@ -69,6 +107,7 @@ int main()
             bool pipe = false;
             bool outputReDirection = false;
             bool inputReDirection = false;
+            bool background = false;
             for (const auto& arg : instructions_parsed)
             {
                 if (arg == "|")
@@ -86,8 +125,13 @@ int main()
                     inputReDirection = true;
                     execute_inputReDirection(instructions_parsed);
                 }
+                else if (arg == "&")
+                {
+                    background = true;
+                    execute_background(instructions_parsed);
+                }
             }
-            if (pipe || outputReDirection || inputReDirection)continue;
+            if (pipe || outputReDirection || inputReDirection || background)continue;
 
             execute(instructions_parsed);
         }
