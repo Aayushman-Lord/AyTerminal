@@ -40,14 +40,16 @@ void execute(const vector<string> &args)
     if (pid == 0)
     {
         execvp(char_args[0], char_args.data());
+        
         if (errno == ENOENT)
             cout << char_args[0] << ": command not found\n";
         else
         {
-            cout << "Error executing command: " << char_args[0];
+            cout << "Error executing command: " << char_args[0] << " : ";
             cout << strerror(errno) << "\n";
         }
-        return;
+
+	return;
     }
 
     else if (pid > 0)
@@ -103,8 +105,14 @@ void execute_outputReDirection(const vector<string> &args)
 
         execvp(command[0].c_str(), argToChar(command).data());
         
-        cout << "Error executing command: " << command[0];
-        cout << strerror(errno) << "\n";
+        if (errno == ENOENT)
+            cout << command[0] << ": command not found\n";
+        else
+        {
+            cout << "Error executing command: " << command[0] << " : ";
+            cout << strerror(errno) << "\n";
+        }
+
         return;
     }
     else if (pid > 0)
@@ -159,8 +167,13 @@ void execute_inputReDirection(const vector<string> &args)
 
         execvp(command[0].c_str(), argToChar(command).data());
         
-        cout << "Error executing command: " << command[0];
-        cout << strerror(errno) << "\n";
+        if (errno == ENOENT)
+            cout << command[0] << ": command not found\n";
+        else
+        {
+            cout << "Error executing command: " << command[0] << " : ";
+            cout << strerror(errno) << "\n";
+        }
         return;
     }
     else if (pid > 0)
@@ -222,8 +235,14 @@ void execute_pipe(const vector<string> &args)
         close(fileD[1]); // Close the write end of the pipe in the first child
 
         execvp(command1_arg[0], command1_arg.data());
-        cout << "Error executing command: " << command1[0];
-        cout << strerror(errno) << "\n";
+        if (errno == ENOENT)
+            cout << command1[0] << ": command not found\n";
+        else
+        {
+            cout << "Error executing command: " << command1[0] << " : ";
+            cout << strerror(errno) << "\n";
+        }   
+
         return;
     }
     else if (pid1 > 0)
@@ -239,8 +258,13 @@ void execute_pipe(const vector<string> &args)
             close(fileD[0]); // Close the read end of the pipe in the second child
 
             execvp(command2_arg[0], command2_arg.data());
-            cout << "Error executing command: " << command2[0];
-            cout << strerror(errno) << "\n";
+            if (errno == ENOENT)
+                cout << command2[0] << ": command not found\n";
+            else
+            {
+                cout << "Error executing command: " << command2[0] << " : ";
+                cout << strerror(errno) << "\n";
+            }
             return;
         }
         else if (pid2 > 0)
@@ -278,8 +302,14 @@ void execute_background(vector<string> &args)
     {
         execvp(char_args[0], char_args.data());
     
-        cout << "Error executing command: " << char_args[0];
-        cout << strerror(errno) << "\n";
+        if (errno == ENOENT)
+            cout << char_args[0] << ": command not found\n";
+        else
+        {
+            cout << "Error executing command: " << char_args[0] << " : ";
+            cout << strerror(errno) << "\n";
+        }
+        
         return;
     }
 

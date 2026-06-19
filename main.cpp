@@ -84,6 +84,7 @@ int main()
             catch (const std::filesystem::filesystem_error& e)
             {
                 cout << "cd: " << e.what() << '\n';
+		continue;
             }
         }
 
@@ -99,6 +100,7 @@ int main()
             {
                 cout << "PID: " << job.pid << " | Command: " << job.command << " | Status: " << (job.status ? "Running" : "Stopped") << "\n";
             }
+	    continue;
         }
 
         // OTHER COMMANDS
@@ -114,26 +116,31 @@ int main()
                 {
                     execute_pipe(instructions_parsed);
                     pipe = true; 
+		    continue;
                 }
                 else if (arg == ">")
                 {
                     outputReDirection = true;
                     execute_outputReDirection(instructions_parsed);
+		    continue;
                 }
                 else if (arg == "<")
                 {
                     inputReDirection = true;
                     execute_inputReDirection(instructions_parsed);
+		    continue;
                 }
                 else if (arg == "&")
                 {
                     background = true;
                     execute_background(instructions_parsed);
+		    continue;
                 }
             }
             if (pipe || outputReDirection || inputReDirection || background)continue;
 
             execute(instructions_parsed);
+	    continue;
         }
     }
 
